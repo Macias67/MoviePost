@@ -19,3 +19,4 @@ Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 Route::post('/registration', 'Auth\RegistrationController@index')->name('registration');
+Route::post('/mplogin', 'Auth\MoviePostLoginController@index')->name('login');

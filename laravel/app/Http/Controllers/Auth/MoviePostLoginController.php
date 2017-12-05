@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Auth;
 use App\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Input;
@@ -10,7 +11,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 use \Firebase\JWT\JWT;
 
-class RegistrationController extends Controller
+class MoviePostLoginController extends Controller
 {
 
     /**
@@ -35,10 +36,10 @@ class RegistrationController extends Controller
         $userData = Input::json()->all();
         
         // Check the user submitted data is valid
-
+        
         $userValidator = $this->validator($userData);
         if($userValidator->fails()){
-
+            
             $message = $userValidator->errors();
 
             // The submitted user is incorrect
@@ -48,13 +49,26 @@ class RegistrationController extends Controller
 
         }
 
-        // We Create the validated User
-        $newUser = $this->create($userData);
+        if (Auth::attempt(['email' => $userData["email"], 'password' => $userData["password"]])) {
+            // Authentication passed...
+            $user = Auth::user();
 
-        // We encode and create the access Token for the client
-        $encodedUser = JWT::encode($newUser, env('APP_AUTH_PRIVATE_KEY', false));
+            $userTokenData = array(
+                "email" => $user["email"],
+                "name" => $user["name"]
+            );
+            
+            // We encode and create the access Token for the client
+            $encodedUser = JWT::encode($userTokenData, env('APP_AUTH_PRIVATE_KEY', false));
 
-        return $encodedUser;
+            return $encodedUser;
+        }
+
+        $message = "Wrong Access Credentials";
+
+        return response($message, 400)
+                ->header('Content-Type', 'text/plain'); 
+
 
     }
 
@@ -68,9 +82,8 @@ class RegistrationController extends Controller
     protected function validator(array $data)
     {
         return Validator::make($data, [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
+            'email' => 'required|string|email|max:255',
+            'password' => 'required|string|min:6',
         ]);
     }
 
