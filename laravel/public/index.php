@@ -35,6 +35,18 @@ require __DIR__.'/../bootstrap/autoload.php';
 
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
+
+/*
+|--------------------------------------------------------------------------
+| Require Vendor External Resources
+|--------------------------------------------------------------------------
+|
+| Currently Loading the Library of PHP JWT for managing authentication
+|
+*/
+
+require __DIR__.'/../../vendor/autoload.php';
+
 /*
 |--------------------------------------------------------------------------
 | Run The Application
