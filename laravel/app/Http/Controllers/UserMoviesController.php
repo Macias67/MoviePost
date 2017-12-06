@@ -30,14 +30,43 @@ class UserMoviesController extends Controller
      * @
      * @return Response
      */
-    public function index($idmovie = null)
+    public function index()
     {
         // Retrieve user from Authorization token
 
         $token = Request::header('Authorization');
+        if(!isset($token)){
+            $message = "Error";
+            return response($message, 400)
+                  ->header('Content-Type', 'text/plain'); 
+        }
         $user = User::fromToken($token);
         
-        $movies = DB::table('user_movies')->where('iduser', $user->email)->get();
+        $page = Input::get('page', -1);
+
+
+
+        if($page > -1) {
+            $movies = DB::table('user_movies')->where('iduser', $user->email)
+                ->offset(($page-1)*10)
+                ->limit(10)
+                ->get();
+
+            $count = DB::table('user_movies')
+                    ->where('iduser', $user->email)
+                    ->count();
+                
+            $pages = intval($count/10) + 1; // Assumes page size 10
+            return array(
+                "total_results" => $count,
+                "total_pages" => $pages,
+                "results" => $movies
+            );
+
+        } 
+        else {
+            $movies = DB::table('user_movies')->where('iduser', $user->email)->get();
+        }
         
         return $movies;
 
@@ -51,15 +80,38 @@ class UserMoviesController extends Controller
      */
     public function save($movie = null)
     {
+        // Retrieve user from Authorization token
 
         $token = Request::header('Authorization');
+        if(!isset($token)){
+            $message = "Error";
+            return response($message, 400)
+                  ->header('Content-Type', 'text/plain'); 
+        }
+
         $user = User::fromToken($token);
 
         $movieData = Input::json()->all();
+
+        if(!isset($movieData["movie"]["id"])){
+            $movieData["movie"]["id"] = $movieData["movie"]["idmovie"];
+        }
+
+        $movies = DB::table('user_movies')
+                    ->where('iduser', $user->email)
+                    ->where('idmovie', $movieData["movie"]["id"])->first();
         
-        $movies = DB::table('user_movies')->where('iduser', $user->email)->get();
+        if(!$movies){
+            DB::table('user_movies')->insert(
+                ['iduser' => $user->email, 
+                    'idmovie' => $movieData["movie"]["id"],
+                    'title' => $movieData["movie"]["title"],
+                    'overview' => $movieData["movie"]["overview"],
+                    'poster_path' => $movieData["movie"]["poster_path"]]
+            );
+        }
         
-        return $movies;
+        return "success";
 
     }
 
@@ -71,7 +123,22 @@ class UserMoviesController extends Controller
      */
     public function delete($idmovie = null)
     {
-        return Route::currentRouteName();
+        // Retrieve user from Authorization token
+
+        $token = Request::header('Authorization');
+        if(!isset($token)){
+            $message = "Error";
+            return response($message, 400)
+                  ->header('Content-Type', 'text/plain'); 
+        }
+        $user = User::fromToken($token);
+
+
+        DB::table('user_movies')
+            ->where('iduser', $user->email)
+            ->where('idmovie', $idmovie)->delete();
+        
+        return "success";
     }
 
     /**
