@@ -26,10 +26,10 @@ Route::post('/mplogin', 'Auth\MoviePostLoginController@index')->name('login');
 
 // User Routes
 
-Route::get('/user/movies', 'UserMoviesController@index')->name('user_movies');
+Route::get('/user', 'UserController@index')->name('user_profile');
 
 // Movie Administration Routes
 
 Route::get('/user/movies', 'UserMoviesController@index')->name('user_movies');
-Route::put('/user/movies', 'MoviePostLoginController@save')->name('save_user_movie');
-Route::delete('/user/movies/{idmovie}', 'MoviePostLoginController@delete')->name('delete_user_movie');
+Route::put('/user/movies', 'UserMoviesController@save')->name('save_user_movie');
+Route::delete('/user/movies/{idmovie}', 'UserMoviesController@delete')->name('delete_user_movie');
