@@ -30,11 +30,16 @@ class UserController extends Controller
      * @
      * @return Response
      */
-    public function index($idmovie = null)
+    public function index()
     {
         // Retrieve user from Authorization token
-
+        
         $token = Request::header('Authorization');
+        if(!isset($token)){
+            $message = "Error";
+            return response($message, 400)
+                  ->header('Content-Type', 'text/plain'); 
+        }
         $user = User::fromToken($token);
         
         $foundUser = DB::table('users')->where('email', $user->email)->first();
@@ -43,7 +48,7 @@ class UserController extends Controller
             "email" => $foundUser->email,
             "name" => $foundUser->name
         );
-
+        
         return $user;
 
     }
