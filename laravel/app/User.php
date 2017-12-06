@@ -28,29 +28,16 @@ class User extends Authenticatable
         'password', 'remember_token',
     ];
 
-    public function fromTokem($token) {
-        return $this->decodeToken($token);
-    }
-
-    private function  decodeToken($token){
-
-        // Get public keys from URL as an array
-        $publicKeyURL = 'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
-        $key = json_decode(file_get_contents($publicKeyURL), true);
-
-        /**
-        * IMPORTANT:
-        * You must specify supported algorithms for your application. See
-        * https://tools.ietf.org/html/draft-ietf-jose-json-web-algorithms-40
-        * for a list of spec-compliant algorithms.
-        */
-        if($token == NULL){
-            return "Error";
-        }
+    public static function fromToken($token) {
+        
+        // get Public Key
+        $key = strtr(env('APP_AUTH_PUBLIC_KEY', false), array('\\n' => "\n", "_" => " "));
+        
         JWT::$leeway = 5; // Allows a 5 second tolerance on timing checks
         $decoded = JWT::decode($token, $key, array('RS256'));
-
+        
         return $decoded;
 
     }
+
 }

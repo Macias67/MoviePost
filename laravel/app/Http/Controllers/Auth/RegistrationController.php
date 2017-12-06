@@ -26,7 +26,7 @@ class RegistrationController extends Controller
     /**
      * Register a user
      *
-     * @param  int  $id
+     * input json $userData
      * @return Response
      */
     public function index()
@@ -40,9 +40,7 @@ class RegistrationController extends Controller
         if($userValidator->fails()){
 
             $message = $userValidator->errors();
-
-            // The submitted user is incorrect
-
+            // The submitted user has invalid data
             return response($message, 400)
                   ->header('Content-Type', 'text/plain'); 
 
@@ -52,7 +50,7 @@ class RegistrationController extends Controller
         $newUser = $this->create($userData);
 
         // We encode and create the access Token for the client
-        $encodedUser = JWT::encode($newUser, env('APP_AUTH_PRIVATE_KEY', false));
+        $encodedUser = JWT::encode($newUser, strtr(env('APP_AUTH_PRIVATE_KEY', false), array('\\n' => "\n", "_" => " ")), 'RS256');
 
         return $encodedUser;
 
@@ -63,7 +61,7 @@ class RegistrationController extends Controller
      * Get a validator for an incoming registration request.
      *
      * @param  array  $data
-     * @return \Illuminate\Contracts\Validation\Validator
+     * @return \Illuminate\Support\Facades\Validator
      */
     protected function validator(array $data)
     {

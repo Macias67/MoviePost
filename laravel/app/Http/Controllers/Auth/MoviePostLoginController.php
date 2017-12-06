@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Validator;
 use \Firebase\JWT\JWT;
 
@@ -25,9 +26,9 @@ class MoviePostLoginController extends Controller
     }
 
     /**
-     * Register a user
+     * Login User
      *
-     * @param  int  $id
+     * input json $userData
      * @return Response
      */
     public function index()
@@ -36,14 +37,11 @@ class MoviePostLoginController extends Controller
         $userData = Input::json()->all();
         
         // Check the user submitted data is valid
-        
         $userValidator = $this->validator($userData);
         if($userValidator->fails()){
-            
+    
             $message = $userValidator->errors();
-
-            // The submitted user is incorrect
-
+            // The submitted user has invalid data
             return response($message, 400)
                   ->header('Content-Type', 'text/plain'); 
 
@@ -57,15 +55,14 @@ class MoviePostLoginController extends Controller
                 "email" => $user["email"],
                 "name" => $user["name"]
             );
-            
+
             // We encode and create the access Token for the client
-            $encodedUser = JWT::encode($userTokenData, env('APP_AUTH_PRIVATE_KEY', false));
+            $encodedUser = JWT::encode($userTokenData, strtr(env('APP_AUTH_PRIVATE_KEY', false), array('\\n' => "\n", "_" => " ")), 'RS256');
 
             return $encodedUser;
         }
 
         $message = "Wrong Access Credentials";
-
         return response($message, 400)
                 ->header('Content-Type', 'text/plain'); 
 
@@ -74,31 +71,16 @@ class MoviePostLoginController extends Controller
 
 
     /**
-     * Get a validator for an incoming registration request.
+     * Get a validator for an incoming login request.
      *
      * @param  array  $data
-     * @return \Illuminate\Contracts\Validation\Validator
+     * @return \Illuminate\Support\Facades\Validator
      */
     protected function validator(array $data)
     {
         return Validator::make($data, [
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:6',
-        ]);
-    }
-
-    /**
-     * Create a new user instance after a valid registration.
-     *
-     * @param  array  $data
-     * @return \App\User
-     */
-    protected function create(array $data)
-    {
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => bcrypt($data['password']),
         ]);
     }
 
